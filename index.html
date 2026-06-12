@@ -1,51 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Dino Test</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-  
-  <!-- Using a very stable version of A-Frame -->
-  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>3D Dino AR</title>
+
+  <!-- Use a newer version from unpkg (Google CDN version is old) -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
+  <style>
+    body { margin: 0; background-color: #f0f0f0; font-family: sans-serif; }
+    model-viewer {
+      width: 100vw;
+      height: 100vh;
+      background-color: #eee;
+    }
+    .ar-button {
+      background-color: #ff6b35;
+      border-radius: 30px;
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      font-weight: bold;
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      cursor: pointer;
+    }
+  </style>
 </head>
-<body style="background-color: #222; margin: 0; overflow: hidden;">
+<body>
+  <model-viewer
+    src="https://modelviewer.dev/shared-assets/models/dinosaur.glb"
+    ios-src="https://modelviewer.dev/shared-assets/models/dinosaur.usdz"
+    ar
+    ar-modes="webxr scene-viewer quick-look"
+    camera-controls
+    shadow-intensity="1"
+    auto-rotate
+    alt="A 3D dinosaur model">
 
-  <!-- This text will prove the page is loading -->
-  <div style="position: fixed; top: 10px; width: 100%; text-align: center; color: white; z-index: 999; font-family: sans-serif;">
-    Loading Dinosaur... (If you see a red cube, the system works!)
-  </div>
-
-  <a-scene backgroundColor="#222" renderer="antialias: true;">
-    
-    <!-- Assets -->
-    <a-assets>
-      <!-- I am using a smaller, faster model this time -->
-      <a-asset-item id="dino" src="https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/T-Rex/glTF-Binary/T-Rex.glb"></a-asset-item>
-    </a-assets>
-
-    <!-- Camera -->
-    <a-entity position="0 2 5">
-      <a-camera look-controls="pointerLockEnabled: false"></a-camera>
-    </a-entity>
-
-    <!-- 1. THE TEST CUBE (If you see this, the code is working!) -->
-    <a-box position="-2 0.5 -2" color="red" scale="0.5 0.5 0.5"></a-box>
-
-    <!-- 2. THE DINOSAUR -->
-    <a-entity 
-      gltf-model="#dino" 
-      position="0 0 0" 
-      scale="1 1 1" 
-      rotation="0 0 0">
-    </a-entity>
-
-    <!-- Lighting -->
-    <a-light type="ambient" color="#fff" intensity="0.8"></a-light>
-    <a-light type="directional" position="1 3 2" intensity="0.8"></a-light>
-    
-    <!-- Simple Floor -->
-    <a-plane position="0 0 0" rotation="-90 0 0" width="20" height="20" color="#444"></a-plane>
-
-  </a-scene>
+    <button slot="ar-button" class="ar-button">
+      🦖 VIEW IN YOUR ROOM
+    </button>
+  </model-viewer>
 </body>
 </html>
