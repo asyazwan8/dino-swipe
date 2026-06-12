@@ -1,49 +1,62 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>AR Dino Swipe</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+
+  <!-- A-Frame only: Stable, no-motion-sensor requirements -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+
   <style>
-    body { margin: 0; overflow: hidden; font-family: sans-serif; touch-action: none; user-select: none; }
+    body { margin: 0; overflow: hidden; font-family: sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; background: #000; }
     .hud { position: fixed; top: 0; left: 0; right: 0; padding: 12px; z-index: 10; pointer-events: none; }
-    .bar { display: flex; justify-content: space-around; background: rgba(0,0,0,0.5);
-           border-radius: 14px; padding: 10px; color: #fff; backdrop-filter: blur(8px); }
-    .stat { text-align: center; }
-    .stat small { display: block; font-size: 11px; opacity: 0.7; letter-spacing: 1px; }
+    .bar { display: flex; justify-content: space-around; background: rgba(0,0,0,0.6);
+           border-radius: 14px; padding: 10px; color: #fff; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+           border: 1px solid rgba(255,255,255,0.1); }
+    .stat { text-align: center; flex: 1; }
+    .stat small { display: block; font-size: 11px; opacity: 0.7; letter-spacing: 1.5px; }
     .stat b { font-size: 22px; color: #ffb84d; }
-    #combo { position: fixed; top: 40%; left: 50%; transform: translate(-50%,-50%);
-             font-size: 80px; font-weight: 900; color: #ffb84d; pointer-events: none;
-             opacity: 0; z-index: 11; text-shadow: 0 0 20px #ffb84d; }
+    #combo { position: fixed; top: 38%; left: 50%; transform: translate(-50%,-50%);
+             font-size: clamp(60px, 15vw, 100px); font-weight: 900; color: #ffb84d; pointer-events: none;
+             opacity: 0; z-index: 11; text-shadow: 0 0 30px #ffb84d, 0 0 60px #ff5e3a; }
     #combo.pop { animation: pop 0.8s ease-out; }
     @keyframes pop {
-      0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.3); }
-      30%  { opacity: 1; transform: translate(-50%,-50%) scale(1.3); }
+      0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.3) rotate(-15deg); }
+      30%  { opacity: 1; transform: translate(-50%,-50%) scale(1.3) rotate(5deg); }
       100% { opacity: 0; transform: translate(-50%,-50%) scale(1.5) translateY(-50px); }
     }
-    .overlay { position: fixed; inset: 0; background: linear-gradient(135deg, #2b1810, #0a0606);
+    .overlay { position: fixed; inset: 0; background: linear-gradient(135deg, #2b1810 0%, #0a0606 100%);
                display: flex; flex-direction: column; align-items: center; justify-content: center;
                color: #fff; z-index: 100; text-align: center; padding: 20px; }
-    .overlay h1 { font-size: 48px; margin: 0; background: linear-gradient(135deg,#ffb84d,#ff5e3a);
-                  -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .overlay h1 { font-size: clamp(40px, 12vw, 60px); margin: 0 0 16px;
+                  background: linear-gradient(135deg,#ffb84d,#ff5e3a);
+                  -webkit-background-clip: text; background-clip: text;
+                  -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 20px rgba(255,107,53,0.4)); }
+    .overlay p { font-size: 16px; line-height: 1.5; margin: 0; max-width: 320px; opacity: 0.9; }
     .btn { background: linear-gradient(135deg,#ff6b35,#f7931e); color: #fff; border: none;
-           padding: 16px 40px; font-size: 18px; font-weight: 800; border-radius: 30px;
-           margin-top: 24px; letter-spacing: 2px; }
+           padding: 16px 48px; font-size: 18px; font-weight: 800; border-radius: 30px;
+           margin-top: 28px; letter-spacing: 2px; cursor: pointer;
+           box-shadow: 0 6px 24px rgba(255,107,53,0.4); }
+    .btn:active { transform: scale(0.95); }
+    #flash { position: fixed; inset: 0; background: #ff5e3a; opacity: 0; pointer-events: none; z-index: 12; transition: opacity 0.15s; }
+    #flash.on { opacity: 0.25; transition: opacity 0.05s; }
+    #trailLayer { position: fixed; inset: 0; pointer-events: none; z-index: 13; }
+    a-scene { position: fixed !important; top: 0; left: 0; width: 100vw; height: 100vh; }
   </style>
 </head>
 <body>
 
+<!-- Screens -->
 <div id="start" class="overlay">
   <h1>🦖 Dino Swipe</h1>
-  <p>Move your phone to find dinosaurs.<br>Swipe to defeat them — chain hits for combos!</p>
-  <button class="btn" onclick="startGame()">START</button>
+  <p>Tap START. Use your finger to look around.<br>Dinos will appear in 3D space.<br><strong>Swipe across them</strong> to defeat them!</p>
+  <button class="btn" id="startBtn">START</button>
 </div>
 
 <div id="end" class="overlay" style="display:none">
   <h1>Game Over!</h1>
-  <p>Score: <span id="fs">0</span> · Best combo: <span id="bc">x1</span></p>
+  <p>Score: <b id="fs">0</b><br>Best combo: <b id="bc">x1</b></p>
   <button class="btn" onclick="location.reload()">PLAY AGAIN</button>
 </div>
 
@@ -56,14 +69,17 @@
 </div>
 
 <div id="combo"></div>
+<div id="flash"></div>
+<svg id="trailLayer"></svg>
 
-<!-- The AR scene -->
-<a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" vr-mode-ui="enabled:false">
-  <a-entity camera></a-entity>
+<!-- Scene: Using look-controls (drag to look) instead of device motion -->
+<a-scene vr-mode-ui="enabled: false" renderer="antialias: true; alpha: true;">
+  <a-entity camera look-controls="pointerLockEnabled: false"></a-entity>
   <a-entity id="dinos"></a-entity>
   <a-entity id="particles"></a-entity>
   <a-light type="ambient" color="#fff" intensity="0.6"></a-light>
   <a-light type="directional" position="1 5 1" intensity="0.6"></a-light>
+  <a-sky color="#111"></a-sky>
 </a-scene>
 
 <script>
@@ -79,11 +95,12 @@ const colors = {
 function mkDino(type) {
   const e = document.createElement('a-entity');
   e.dataset.alive = 'true';
-  e.dataset.type = type;
   const {c,a} = colors[type];
-  const s = (t,w,h,d,m,r) => { const x=document.createElement('a-box');
+  const s = (t,w,h,d,m,r) => { 
+    const x=document.createElement('a-box');
     x.setAttribute('position',t); x.setAttribute('width',w); x.setAttribute('height',h); x.setAttribute('depth',d);
-    if(r)x.setAttribute('rotation',r); x.setAttribute('material',`color:${m};roughness:0.8`); e.appendChild(x); };
+    if(r)x.setAttribute('rotation',r); x.setAttribute('material',`color:${m};roughness:0.8`); e.appendChild(x); 
+  };
 
   s('0 0.55 0',     0.65,0.55,1.1,  c);            // body
   s('0 0.6 -0.7',   0.18,0.18,0.55, c);            // tail
@@ -118,10 +135,15 @@ function defeat(d) {
   score += 10*Math.min(combo,5);
   document.getElementById('score').textContent=score;
   document.getElementById('comboHud').textContent='x'+Math.max(1,combo);
+  
+  const c=document.getElementById('combo');
   if(combo>=2) {
-    const c=document.getElementById('combo');
     c.textContent='x'+combo+'!'; c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop');
   }
+
+  document.getElementById('flash').classList.add('on');
+  setTimeout(()=>document.getElementById('flash').classList.remove('on'), 100);
+
   d.querySelectorAll('a-box,a-sphere,a-cone').forEach(x=>{
     x.setAttribute('material','transparent:true;opacity:1');
     x.setAttribute('animation',{property:'material.opacity',from:1,to:0,dur:300});
@@ -149,23 +171,19 @@ function beep() {
 function spawn() {
   const types=Object.keys(colors);
   const d=mkDino(types[Math.random()*types.length|0]);
-  // place ~2-3m in front of camera
   const cam=document.querySelector('[camera]');
-  const camPos=cam.object3D.position;
-  const angle=(Math.random()-0.5)*Math.PI*0.8;
-  const dist=2+Math.random()*1.5;
+  const angle=(Math.random()-0.5)*Math.PI*1.2;
+  const dist=3+Math.random()*3;
   d.setAttribute('position',{x:Math.sin(angle)*dist,y:0,z:-Math.cos(angle)*dist});
-  // face camera
-  d.addEventListener('loaded',()=>d.object3D.lookAt(camPos));
+  d.addEventListener('loaded',()=>d.object3D.lookAt(0,0,0));
   document.getElementById('dinos').appendChild(d);
   dinos.push(d);
 
-  // auto-flee if not hit
   setTimeout(()=>{
     if(d.dataset.alive==='true') {
       const p=d.object3D.position;
       d.dataset.alive='fleeing';
-      d.setAttribute('animation',{property:'position',to:`${p.x*2} 0 ${p.z*2}`,dur:1000});
+      d.setAttribute('animation',{property:'position',to:`${p.x*1.5} 0 ${p.z*1.5}`,dur:1000});
       d.querySelectorAll('a-box,a-sphere,a-cone').forEach(x=>{
         x.setAttribute('material','transparent:true;opacity:1');
         x.setAttribute('animation',{property:'material.opacity',from:1,to:0,dur:1000});
@@ -181,12 +199,8 @@ function startGame() {
   document.getElementById('start').style.display='none';
   document.getElementById('hud').style.display='block';
   playing=true;
-
-  // spawn loop
   let r=1500;
   (function loop(){ if(!playing) return; spawn(); r=Math.max(600,r*0.96); setTimeout(loop,r); })();
-
-  // timer
   const ti=setInterval(()=>{
     timeLeft--; document.getElementById('time').textContent=timeLeft;
     if(timeLeft<=0){ clearInterval(ti); playing=false; document.getElementById('hud').style.display='none';
@@ -196,14 +210,13 @@ function startGame() {
   },1000);
 }
 
-// ---------- swipe detection ----------
+// Swipe Logic
 let sS=null,sC=null;
 function startSwipe(x,y){sS={x,y};sC={x,y};}
 function moveSwipe(x,y){sC={x,y};}
 function endSwipe(){
   if(!sS||!sC) return;
   if(Math.hypot(sC.x-sS.x,sC.y-sS.y)<30){sS=sC=null;return;}
-  // hit-test each dino in 2D screen space
   const cam=document.querySelector('[camera]').object3D;
   const w=innerWidth,h=innerHeight;
   for(const d of [...dinos]){
@@ -211,13 +224,14 @@ function endSwipe(){
     const v=d.object3D.position.clone().project(cam);
     if(v.z>1||v.z<-1) continue;
     const sp={x:(v.x*0.5+0.5)*w, y:(-v.y*0.5+0.5)*h};
-    if(dist(sp,sS,sC)<90) defeat(d);
+    if(dist(sp,sS,sC)<100) defeat(d);
   }
   sS=sC=null;
 }
 
-document.addEventListener('touchstart',e=>{e.preventDefault();startSwipe(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
-document.addEventListener('touchmove',e=>{e.preventDefault();moveSwipe(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
+document.getElementById('startBtn').onclick = startGame;
+document.addEventListener('touchstart',e=>{startSwipe(e.touches[0].clientX,e.touches[0].clientY);});
+document.addEventListener('touchmove',e=>{moveSwipe(e.touches[0].clientX,e.touches[0].clientY);});
 document.addEventListener('touchend',endSwipe);
 document.addEventListener('mousedown',e=>startSwipe(e.clientX,e.clientY));
 document.addEventListener('mousemove',e=>{if(sS)moveSwipe(e.clientX,e.clientY);});
