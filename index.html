@@ -3,48 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>3D Dino AR</title>
+  <title>Dino AR Overlay</title>
 
-  <!-- Use a newer version from unpkg (Google CDN version is old) -->
+  <!-- The Google Model-Viewer script you requested -->
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
-    body { margin: 0; background-color: #f0f0f0; font-family: sans-serif; }
+    body { 
+      margin: 0; 
+      background-color: #111; 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+    }
+
+    /* Make the viewer fill the entire screen */
     model-viewer {
       width: 100vw;
       height: 100vh;
-      background-color: #eee;
+      --poster-color: transparent;
     }
+
+    /* Style the AR Button to look professional */
     .ar-button {
       background-color: #ff6b35;
       border-radius: 30px;
       border: none;
       color: white;
-      padding: 12px 24px;
+      padding: 16px 32px;
+      font-size: 18px;
       font-weight: bold;
       position: absolute;
-      bottom: 30px;
+      bottom: 40px;
       left: 50%;
       transform: translateX(-50%);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
       cursor: pointer;
+      z-index: 100;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .ar-button:active {
+      transform: translateX(-50%) scale(0.95);
+      background-color: #e55a2b;
+    }
+
+    .hint {
+      position: absolute;
+      top: 20px;
+      width: 100%;
+      text-align: center;
+      color: white;
+      font-size: 14px;
+      opacity: 0.7;
+      pointer-events: none;
     }
   </style>
 </head>
 <body>
-  <model-viewer
-    src="https://modelviewer.dev/shared-assets/models/dinosaur.glb"
-    ios-src="https://modelviewer.dev/shared-assets/models/dinosaur.usdz"
-    ar
-    ar-modes="webxr scene-viewer quick-look"
-    camera-controls
-    shadow-intensity="1"
-    auto-rotate
-    alt="A 3D dinosaur model">
 
-    <button slot="ar-button" class="ar-button">
-      🦖 VIEW IN YOUR ROOM
-    </button>
-  </model-viewer>
-</body>
-</html>
+  <div class="hint">Rotate the dino with your finger, then tap the button below</div>
+
+  <!-- 
+    The model-viewer tag:
+    - 'ar': Enables AR mode
+    - 'ar-modes': 'quick-look' is the magic for iPhone AR
+    - 'camera-controls': Allows rotating the dino on the screen
+    - 'auto-rotate': Makes the dino spin slowly
+  -->
+  <model-viewer 
+    src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/T-Rex/glTF-Binary/T-Rex.glb" 
+    ar 
+    ar-modes="webxr scene-viewer quick-look" 
+    camera-controls
