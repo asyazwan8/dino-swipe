@@ -3,75 +3,114 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dino AR Overlay</title>
-
-  <!-- The Google Model-Viewer script you requested -->
+  <title>3D Dino AR</title>
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-
   <style>
-    body { 
-      margin: 0; 
-      background-color: #111; 
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-    }
+    body { margin: 0; background: #1a1a2e; font-family: sans-serif; }
 
-    /* Make the viewer fill the entire screen */
     model-viewer {
       width: 100vw;
       height: 100vh;
-      --poster-color: transparent;
     }
 
-    /* Style the AR Button to look professional */
+    /* Loading overlay */
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+      gap: 12px;
+      pointer-events: none;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 5px solid rgba(255,255,255,0.2);
+      border-top-color: #ff6b35;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Hide overlay once loaded */
+    .loaded .loading-overlay { display: none; }
+
+    /* AR button */
     .ar-button {
-      background-color: #ff6b35;
+      background: #ff6b35;
       border-radius: 30px;
       border: none;
       color: white;
-      padding: 16px 32px;
-      font-size: 18px;
+      padding: 14px 28px;
+      font-size: 16px;
       font-weight: bold;
       position: absolute;
       bottom: 40px;
       left: 50%;
       transform: translateX(-50%);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 20px rgba(255,107,53,0.5);
       cursor: pointer;
-      z-index: 100;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      white-space: nowrap;
     }
 
-    .ar-button:active {
-      transform: translateX(-50%) scale(0.95);
-      background-color: #e55a2b;
-    }
-
-    .hint {
+    /* Hint text below button */
+    .ar-hint {
       position: absolute;
-      top: 20px;
-      width: 100%;
-      text-align: center;
-      color: white;
-      font-size: 14px;
-      opacity: 0.7;
-      pointer-events: none;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.6);
+      font-size: 12px;
+      white-space: nowrap;
     }
+
+    /* Hide hint on non-AR devices */
+    model-viewer:not([ar]) .ar-hint { display: none; }
   </style>
 </head>
 <body>
-
-  <div class="hint">Rotate the dino with your finger, then tap the button below</div>
-
-  <!-- 
-    The model-viewer tag:
-    - 'ar': Enables AR mode
-    - 'ar-modes': 'quick-look' is the magic for iPhone AR
-    - 'camera-controls': Allows rotating the dino on the screen
-    - 'auto-rotate': Makes the dino spin slowly
-  -->
-  <model-viewer 
-    src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/T-Rex/glTF-Binary/T-Rex.glb" 
-    ar 
-    ar-modes="webxr scene-viewer quick-look" 
+  <model-viewer
+    id="dino-viewer"
+    src="https://modelviewer.dev/shared-assets/models/dinosaur.glb"
+    ios-src="https://modelviewer.dev/shared-assets/models/dinosaur.usdz"
+    ar
+    ar-modes="scene-viewer quick-look webxr"
     camera-controls
+    shadow-intensity="1"
+    auto-rotate
+    alt="A 3D dinosaur in augmented reality">
+
+    <!-- Loading spinner (hidden once model loads) -->
+    <div class="loading-overlay" slot="progress-bar">
+      <div class="spinner"></div>
+      <span>Loading dinosaur...</span>
+    </div>
+
+    <button slot="ar-button" class="ar-button">
+      🦖 VIEW IN YOUR ROOM
+    </button>
+
+    <p class="ar-hint">Requires Safari (iOS) or Chrome (Android)</p>
+
+  </model-viewer>
+
+  <script>
+    const viewer = document.getElementById('dino-viewer');
+
+    // Show confirmation when AR is actually launching
+    viewer.addEventListener('ar-status', (e) => {
+      console.log('AR status:', e.detail.status);
+      if (e.detail.status === 'failed') {
+        alert('AR not supported on this device/browser.\n\niOS: Use Safari\nAndroid: Use Chrome with ARCore');
+      }
+    });
+  </script>
+</body>
+</html>
