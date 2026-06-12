@@ -1,85 +1,43 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>3D Dino Viewer</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>3D Dino AR</title>
   
-  <!-- A-Frame library -->
-  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  
+  <!-- This is the magic script from Google that handles AR for you -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+
   <style>
-    body { margin: 0; overflow: hidden; font-family: sans-serif; }
-    .instructions {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.7);
+    body { margin: 0; background-color: #f0f0f0; font-family: sans-serif; }
+    model-viewer {
+      width: 100vw;
+      height: 100vh;
+      background-color: #eee;
+    }
+    .ar-button {
+      background-color: #ff6b35;
+      border-radius: 30px;
+      border: none;
       color: white;
       padding: 12px 24px;
-      border-radius: 30px;
-      text-align: center;
-      z-index: 10;
-      pointer-events: none;
-      font-size: 14px;
-      border: 1px solid rgba(255,255,255,0.3);
+      font-weight: bold;
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-  <div class="instructions">
-    Drag your finger to rotate the view 🦖
-  </div>
-
-  <a-scene renderer="antialias: true; colorManagement: true;">
-    
-    <!-- Assets: Loading a high-quality T-Rex model from a public CDN -->
-    <a-assets>
-      <a-asset-item id="dino-model" src="https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/T-Rex/glTF-Binary/T-Rex.glb"></a-asset-item>
-    </a-assets>
-
-    <!-- Camera and Controls -->
-    <!-- 'look-controls' allows you to drag the screen to rotate the camera -->
-    <a-entity position="0 2 5">
-      <a-camera look-controls="pointerLockEnabled: false"></a-camera>
-    </a-entity>
-
-    <!-- The Dinosaur -->
-    <a-entity 
-      gltf-model="#dino-model" 
-      position="0 0 0" 
-      scale="1 1 1" 
-      rotation="0 0 0">
-    </a-entity>
-
-    <!-- Environment / Floor -->
-    <a-grid static-body material="color: #333; opacity: 0.5"></a-grid>
-    <a-sky color="#222"></a-sky>
-
-    <!-- Professional Lighting -->
-    <a-light type="ambient" color="#bbb"></a-light>
-    <a-light type="directional" color="#fff" intensity="0.8" position="-1 2 1"></a-light>
-    <a-light type="point" intensity="0.5" position="2 4 -3"></a-light>
-
-  </a-scene>
-
-  <!-- Simple helper to make the grid look better -->
-  <script>
-    // Create a basic grid floor since we aren't using external plugins
-    AFRAME.registerComponent('grid', {
-      init: function () {
-        const scene = this.el.sceneEl;
-        const grid = document.createElement('a-plane');
-        grid.setAttribute('rotation', '-90 0 0');
-        grid.setAttribute('width', '100');
-        grid.setAttribute('height', '100');
-        grid.setAttribute('color', '#444');
-        grid.setAttribute('material', 'opacity: 0.3; transparent: true; wireframe: true');
-        scene.getObject3D('scene').add(grid.object3D);
-      }
-    });
-  </script>
-</body>
-</html>
+  <!-- 
+    model-viewer handles everything:
+    - 'ar' enables the AR button
+    - 'ar-modes' tells it to use the iPhone's native ARQuickLook
+    - 'camera-controls' lets you spin the dino on screen
+  -->
+  <model-viewer 
+    src="https://raw.githubusercontent.com/Khron
